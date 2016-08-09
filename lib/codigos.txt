@@ -1,0 +1,43 @@
+=begin
+  begin
+    parsed = JSON.parse(msg)
+    action = parsed["Action"]
+
+    if action.eql? "move" then
+      @positions[sock.peeraddr[1]].pos_x = parsed["PosX"]
+      @positions[sock.peeraddr[1]].pos_y = parsed["PosY"]
+    elsif action.eql? "position" then
+      send_position(sock)
+      next
+    elsif action.eql? "fight" then
+      send_fight_to_another_client(sock, parsed["Id_enemy"])
+      next
+    elsif action.eql? "finishBattle" then
+      send_die_player_and_winner_to_show(sock, parsed["Id_enemy"])
+      next
+    elsif action.eql? "getObj" then
+      parsed["Action"] = "remObj"
+      ret = @maps[0].remove_key(parsed["Id_obj"])
+      # puts ret
+      @positions[sock.peeraddr[1]].add_object(ret)
+      parsed.delete("Id_user")
+      msg = parsed.to_json
+    elsif action.eql? "freeObj" then
+      parsed["Action"] = "addObj"
+      obj = @maps[0].add_key(parsed["Obj"]["Id_obj"], parsed["Obj"]["PosX"], parsed["Obj"]["PosY"])
+      @positions[sock.peeraddr[1]].remove_object(parsed["Obj"]["Id_obj"])
+      parsed.delete("Id_user")
+      msg = parsed.to_json
+    elsif action.eql? "exit" then
+      msg = sprintf('{"Action": "exit", "Id": %d}', sock.peeraddr[1])
+      # puts "Desconecto!"
+      @positions.delete(sock.peeraddr[1])
+      sock.close
+      broadcast_string( msg, sock )
+      @descriptors.delete(sock)
+      next
+    end
+  rescue Exception => e
+    # puts e
+  end
+=end
